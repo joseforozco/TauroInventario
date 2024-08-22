@@ -11,6 +11,9 @@ class Inventarios extends Model
 
     protected $fillable = [
         'nombre',
+        'codigo',
+        'barra',
+        'medidas_id',
         'existencias',
         'valor',
         'total',
@@ -20,6 +23,12 @@ class Inventarios extends Model
         'bodegas_id',
         'proveedores_id',
     ];
+
+    public function medidas()
+    {
+        return $this->belongsTo(medidas::class, 'medidas_id');
+    }
+
 
     public function categorias()
     {

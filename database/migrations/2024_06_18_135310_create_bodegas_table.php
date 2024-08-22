@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('bodegas', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
+            $table->string('direccion');
+            $table->foreignId('departamentos_id')->constrained('departamentos')->restrictOnUpdate()->restrictOnDelete();
+            $table->foreignId('ciudades_id')->constrained('ciudades')->restrictOnUpdate()->restrictOnDelete();
             $table->timestamps();
         });
     }

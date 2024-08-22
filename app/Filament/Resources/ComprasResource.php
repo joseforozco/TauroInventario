@@ -2,16 +2,15 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ComprasResource\Pages;
-use App\Filament\Resources\ComprasResource\RelationManagers;
-use App\Models\Compras;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use App\Models\Compras;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Models\Inventarios;
+use Filament\Resources\Resource;
+use App\Filament\Resources\ComprasResource\Pages;
+
 
 class ComprasResource extends Resource
 {
@@ -24,86 +23,118 @@ class ComprasResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\DateTimePicker::make('fecha')
-                    ->label(__('Fecha factura compra'))
-                    ->required(),
-                Forms\Components\select::make('proveedores_id')
-                    ->label(__('Proveedores'))
-                    ->relationship('proveedores','nombre')
-                    ->searchable()
-                    ->preload()
-                    ->createOptionForm([
-                        Forms\Components\TextInput::make('nombre')
-                            ->label(__('ciudades'))
-                            ->placeholder('Digite el nombre de la Ciudad')
+                Forms\Components\Section::make('Datos Factura de Compra')
+                    ->schema([
+                        Forms\Components\DateTimePicker::make('fecha')
+                            ->label('Fecha factura compra')
+                            ->default(now())
+                            ->date()
                             ->required(),
-                        Forms\Components\select::make('departamentos_id')
-                            ->label(__('Departamento'))
-                            ->relationship('Departamento','nombre')
+                        Forms\Components\Select::make('proveedores_id')
+                            ->label(__('Proveedores'))
+                            ->relationship('proveedores', 'nombre')
                             ->searchable()
-                            ->preload()
-                            ->required()]),
-                Forms\Components\TextInput::make('numerofactura')
-                    ->label(__('Factura Número'))
-                    ->placeholder('Digite el número de factura de compra')
-                    ->required()
-                    ->Unique()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('valorfactura')
-                    ->label(__('Valor Factura'))
-                    ->placeholder('Digite el valor de factura de compra')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('ivafactura')
-                    ->label(__('Valor I.V.A Factura'))
-                    ->placeholder('Digite el valor de iva de compra')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('totalfactura')
-                    ->label(__('Total Factura'))
-                    ->placeholder('Total Factura')
-                    ->required()
-                    ->numeric(),
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('nombre')
+                                    ->label(__('Nombre'))
+                                    ->placeholder('Digite el nombre del proveedor')
+                                    ->required(),
+                                Forms\Components\Select::make('departamentos_id')
+                                    ->label(__('Departamento'))
+                                    ->relationship('departamento', 'nombre')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                            ])
+                            ->preload(),
+                        Forms\Components\TextInput::make('numerofactura')
+                            ->label(__('Factura Número'))
+                            ->placeholder('Digite el número de factura de compra')
+                            ->required()
+                            ->maxLength(255)
+                    ])->columns(3),
+                Forms\Components\Section::make('Valores Factura de Compra')
+                    ->schema([
+                        Forms\Components\TextInput::make('valorfactura')
+                            ->label(__('Valor Factura'))
+                            ->placeholder('Digite el valor de factura de compra')
+                            ->required()
+                            ->numeric(),
+                        Forms\Components\TextInput::make('ivafactura')
+                            ->label(__('Valor I.V.A Factura'))
+                            ->placeholder('Digite el valor de iva de compra')
+                            ->required()
+                            ->numeric(),
+                        Forms\Components\TextInput::make('totalfactura')
+                            ->label(__('Total Factura'))
+                            ->placeholder('Total Factura')
+                            ->required()
+                            ->numeric()
+
+                    ])->columns(3),
+                Forms\Components\Section::make('Items Factura de Compra')
+                    ->schema([
+                        Forms\Components\Repeater::make('items')
+                            ->schema([
+                                Forms\Components\Select::make('inventarios_id')
+                                    ->label('Producto')
+                                    ->options(Inventarios::query()->pluck('nombre', 'id'))
+                                    ->searchable()
+                                    ->required(),
+                                Forms\Components\TextInput::make('cantidad')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->required(),
+                                Forms\Components\TextInput::make('valor')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->required(),
+                                Forms\Components\TextInput::make('subtotal')
+                                    ->numeric()
+                                    ->required()
+                            ])->columns(4)
+                    ])->columnSpanFull()
             ]);
     }
-
-
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('fecha')
-                    ->dateTime()
+                    ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('proveedores_id')
-                    ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('numerofactura')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('valorfactura')
-                    ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->summarize([
+                        Tables\Columns\Summarizers\Sum::make()
+                            ->money()
+                    ]),
                 Tables\Columns\TextColumn::make('ivafactura')
-                    ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->summarize([
+                        Tables\Columns\Summarizers\Sum::make()
+                            ->money()
+                    ]),
                 Tables\Columns\TextColumn::make('totalfactura')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->summarize([
+                        Tables\Columns\Summarizers\Sum::make()
+                            ->money()
+                    ]),
             ])
             ->filters([
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -111,7 +142,6 @@ class ComprasResource extends Resource
                 ]),
             ]);
     }
-
 
     public static function getRelations(): array
     {

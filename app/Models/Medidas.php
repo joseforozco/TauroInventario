@@ -8,4 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Medidas extends Model
 {
     use HasFactory;
+
+    protected $fillable = ['nombre'];
+
+    public function inventarios()
+    {
+        return $this->hasMany(Inventarios::class, 'medidas_id');
+    }
+
 }

@@ -9,6 +9,8 @@ class Deta_Compras extends Model
 {
     use HasFactory;
 
+    protected $table = 'deta_compras';
+
     protected $fillable = [
         'compras_id',
         'inventarios_id',

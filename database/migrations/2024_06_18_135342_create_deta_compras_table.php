@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('deta_cotizas', function (Blueprint $table) {
+        Schema::create('deta_compras', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cotizaciones_id')->constrained('cotizaciones')->restrictOnUpdate()->restrictOnDelete();
+            $table->foreignId('compras_id')->constrained('compras')->restrictOnUpdate()->restrictOnDelete();
             $table->foreignId('inventarios_id')->constrained('inventarios')->restrictOnUpdate()->restrictOnDelete();
             $table->float('cantidad');
             $table->float('valor');
             $table->float('subtotal');
+            $table->timestamps();
     });
 
     }
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('deta__cotizaciones');
+        Schema::dropIfExists('deta_compras');
     }
 };

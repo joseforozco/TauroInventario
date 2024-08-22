@@ -9,27 +9,52 @@ use Filament\Tables\Table;
 use App\Models\Inventarios;
 use Filament\Support\RawJs;
 use Filament\Resources\Resource;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\InventariosResource\Pages;
-use App\Filament\Resources\InventariosResource\RelationManagers;
+
 
 class InventariosResource extends Resource
 {
     protected static ?string $model = Inventarios::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-circle-stack';
-    protected static ?string $navigationGroup= 'Producción';
+    protected static ?string $navigationGroup= 'Terceros';
 
     public static function form(Form $form): Form
     {
         return $form
+        ->schema([
+            Forms\Components\Section::make('Datos Principales')
             ->schema([
                 Forms\Components\TextInput::make('nombre')
                     ->label(__('Descripción'))
                     ->placeholder('Descripción del articulo o producto')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('codigo')
+                    ->label(__('Código Interno'))
+                    ->placeholder('Código del articulo o producto')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('barra')
+                    ->label(__('Código de Barras'))
+                    ->placeholder('Leer codigo con lector de codigo de barras')
+                    ->required()
+                    ->maxLength(255),
+                    Forms\Components\Select::make('medidas_id')
+                    ->label(__('Unidad de Medida'))
+                    ->relationship('medidas', 'nombre')
+                    ->preload()
+                    ->required()
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('nombre')
+                            ->label(__('Unidad de Medida'))
+                            ->placeholder('Digite el nombre medida')
+                            ->unique()
+                            ->required()
+                    ]),
+            ])->columns(4),
+            Forms\Components\Section::make('Datos relevantes')
+            ->schema([
                 Forms\Components\TextInput::make('existencias')
                     ->label(__('Cantidad'))
                     ->placeholder('Existencia')
@@ -55,9 +80,12 @@ class InventariosResource extends Resource
                     ->label(__('Cantidad Minima'))
                     ->placeholder('Cantidad minima requerida')
                     ->required()
-                    ->minValue(1)
-                    ->maxValue(20)
+                    ->default(5)
                     ->numeric(),
+            ])->columns(4),
+
+            Forms\Components\Section::make('Ubicación y caracteristicas')
+            ->schema([
                 Forms\Components\Select::make('categorias_id')
                     ->label(__('Categorias'))
                     ->relationship('categorias', 'nombre')
@@ -98,8 +126,9 @@ class InventariosResource extends Resource
                     ->label(__('Proveedor'))
                     ->relationship('proveedores', 'nombre')
                     ->preload()
-                    ->required(),
-            ]);
+                    ->required()
+            ])->columns(4),
+        ]);
     }
 
     public static function table(Table $table): Table
@@ -148,7 +177,9 @@ class InventariosResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

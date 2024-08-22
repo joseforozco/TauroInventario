@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('proveedores', function (Blueprint $table) {
             $table->id();
-            $table->integer('documento');
+            $table->string('documento');
             $table->string('nombre');
             $table->string('direccion');
             $table->string('email');
-            $table->integer('telefono');
+            $table->string('telefono');
             $table->foreignId('departamentos_id')->constrained('departamentos')->restrictOnUpdate()->restrictOnDelete();
             $table->foreignId('ciudades_id')->constrained('ciudades')->restrictOnUpdate()->restrictOnDelete();
             $table->timestamps();

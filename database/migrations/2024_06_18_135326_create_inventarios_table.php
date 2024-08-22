@@ -14,11 +14,13 @@ return new class extends Migration
         Schema::create('inventarios', function (Blueprint $table) {
             $table->id();
             $table->string('codigo');
+            $table->string('barra');
             $table->string('nombre');
             $table->integer('existencias');
             $table->float('valor');
             $table->float('total');
             $table->integer('minimo');
+            $table->string('medidas_id')->constrained('medidas')->restrictOnUpdate()->restrictOnDelete();;
             $table->foreignId('categorias_id')->constrained('categorias')->restrictOnUpdate()->restrictOnDelete();
             $table->foreignId('marcas_id')->constrained('marcas')->restrictOnUpdate()->restrictOnDelete();
             $table->foreignId('bodegas_id')->constrained('bodegas')->restrictOnUpdate()->restrictOnDelete();

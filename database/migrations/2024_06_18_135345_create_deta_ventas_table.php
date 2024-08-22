@@ -18,6 +18,7 @@ return new class extends Migration
             $table->float('cantidad');
             $table->float('valor');
             $table->float('subtotal');
+            $table->timestamps();
     });
 
     }

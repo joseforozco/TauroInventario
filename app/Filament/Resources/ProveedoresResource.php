@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProveedoresResource\Pages;
-use App\Filament\Resources\ProveedoresResource\RelationManagers;
 use App\Models\Proveedores;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ProveedoresResource extends Resource
 {
@@ -25,11 +22,16 @@ class ProveedoresResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('documento')
+                    ->label("Número de documento")
                     ->required()
-                    ->Unique()
+                    ->unique(Proveedores::class, 'documento', fn (?Proveedores $record) => $record)
+                    ->minLength(5)
+                    ->maxLength(15)
                     ->numeric(),
                 Forms\Components\TextInput::make('nombre')
                     ->required()
+                    ->unique(Proveedores::class, 'nombre', fn (?Proveedores $record) => $record)
+                    ->extraAttributes(['oninput' => 'this.value = this.value.toUpperCase()'])
                     ->maxLength(255),
                 Forms\Components\TextInput::make('direccion')
                     ->required()
@@ -37,21 +39,35 @@ class ProveedoresResource extends Resource
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->required()
+                    ->unique(Proveedores::class, 'email', fn (?Proveedores $record) => $record)
+                    ->extraAttributes(['oninput' => 'this.value = this.value.toLowerCase()'])
                     ->maxLength(255),
                 Forms\Components\TextInput::make('telefono')
                     ->tel()
+                    ->telRegex('/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\.\/0-9]*$/')
+                    ->length(10)
                     ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('departamentos_id')
+                    ->unique(Proveedores::class, 'telefono', fn (?Proveedores $record) => $record),
+                Forms\Components\select::make('departamentos_id')
+                    ->label("Departamento")
+                    ->relationship('Departamentos','nombre')
+                    ->preload(),
+                Forms\Components\select::make('ciudades_id')
+                    ->label("Ciudad")
+                    ->relationship('Ciudades','nombre')
+                    ->preload()
                     ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('ciudades_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('users_id')
-                    ->required()
-                    ->numeric(),
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('nombre')
+                            ->label('Ciudades')
+                            ->placeholder('Digite el nombre de la Ciudad')
+                            ->required(),
+                        Forms\Components\select::make('departamentos_id')
+                            ->label("Departamento")
+                            ->relationship('Departamentos','nombre')
+                            ->preload()])
             ]);
+
     }
 
     public static function table(Table $table): Table
@@ -68,31 +84,14 @@ class ProveedoresResource extends Resource
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('telefono')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('departamentos_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('ciudades_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('users_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

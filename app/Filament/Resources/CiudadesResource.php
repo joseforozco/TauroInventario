@@ -3,15 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CiudadesResource\Pages;
-use App\Filament\Resources\CiudadesResource\RelationManagers;
 use App\Models\Ciudades;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+
 
 class CiudadesResource extends Resource
 {
@@ -36,7 +34,7 @@ class CiudadesResource extends Resource
                     ->preload()
                     ->createOptionForm([
                         Forms\Components\TextInput::make('nombre')
-                            ->label(__('Departameento'))
+                            ->label(__('Departamento'))
                             ->placeholder('Digite el nombre del departamento')
                             ->required()])
                     ->required(),
@@ -54,11 +52,11 @@ class CiudadesResource extends Resource
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->date()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->date()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -66,7 +64,9 @@ class CiudadesResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ClientesResource\Pages;
-use App\Filament\Resources\ClientesResource\RelationManagers;
-use App\Models\Clientes;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Forms\Get;
+use App\Models\Ciudades;
+use App\Models\Clientes;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Resources\Resource;
+use Illuminate\Support\Collection;
+use App\Filament\Resources\ClientesResource\Pages;
 
 class ClientesResource extends Resource
 {
@@ -28,7 +28,8 @@ class ClientesResource extends Resource
                     ->label("Número de documento")
                     ->required()
                     ->unique(Clientes::class, 'documento', fn (?Clientes $record) => $record)
-                    ->minLength(8)
+                    ->minLength(5)
+                    ->maxLength(15)
                     ->numeric(),
                 Forms\Components\TextInput::make('nombre')
                     ->label("Nombre completo")
@@ -48,23 +49,36 @@ class ClientesResource extends Resource
                     ->minLength(15)
                     ->extraAttributes(['oninput' => 'this.value = this.value.tolowerCase()'])
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(50),
                 Forms\Components\TextInput::make('telefono')
                     ->label("Teléfono / Celular")
                     ->tel()
-                    ->minLength(10)
+                    ->telRegex('/^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\.\/0-9]*$/')
+                    ->length(10)
                     ->unique(Clientes::class, 'telefono', fn (?Clientes $record) => $record)
-                    ->required()
-                    ->maxLength(255),
+                    ->required(),
                 Forms\Components\select::make('departamentos_id')
                     ->label("Departamento")
                     ->relationship('Departamentos','nombre')
                     ->preload(),
                 Forms\Components\select::make('ciudades_id')
                     ->label("Ciudad")
-                    ->relationship('Ciudades','nombre')
+                    ->options(fn (Get $get): Collection=> Ciudades::query()
+                        ->where('departamentos_id', $get("departamentos_id"))
+                        ->pluck('nombre','id'))
                     ->preload()
                     ->required()
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('nombre')
+                            ->label('Ciudades')
+                            ->placeholder('Digite el nombre de la Ciudad')
+                            ->required()
+                            ->required(),
+                        Forms\Components\select::make('departamentos_id')
+                            ->label("Departamento")
+                            ->relationship('Departamentos','nombre')
+                            ->preload()
+                            ])
             ]);
     }
 
@@ -82,29 +96,14 @@ class ClientesResource extends Resource
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('telefono')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('departamentos_id')
-                    ->numeric()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('ciudades_id')
-                    ->numeric()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
