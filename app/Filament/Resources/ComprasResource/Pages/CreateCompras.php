@@ -2,12 +2,7 @@
 
 namespace App\Filament\Resources\ComprasResource\Pages;
 
-use Filament\Actions;
-use App\Models\Compras;
-use App\Models\Inventarios;
 use App\Models\Deta_Compras;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Resources\Pages\CreateRecord;
 use App\Filament\Resources\ComprasResource;
 
@@ -34,8 +29,6 @@ class CreateCompras extends CreateRecord
                 'subtotal' => $detalle['subtotal'],
             ]);
         }
-        Log::info('Detalles guardados correctamente.');
-
 
         // Obtener los detalles de la compra recién creada
         $detalles = $this->record->detallesCompras;
