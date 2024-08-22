@@ -18,7 +18,7 @@ class BodegasResource extends Resource
     protected static ?string $model = Bodegas::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
-    protected static ?string $navigationGroup= 'Configuracion';
+    protected static ?string $navigationGroup= 'Configuracion'; //Hace un grupo
 
     public static function form(Form $form): Form
     {
