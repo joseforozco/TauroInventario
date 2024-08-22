@@ -45,8 +45,21 @@ class CreateCompras extends CreateRecord
             // Obtener el inventario relacionado al detalle de la compra
             $inventario = $detalle->inventarios;
 
-            // Aumentar la cantidad en el inventario
-            $inventario->existencias += $detalle->cantidad; // Asumiendo que el campo en detalle es 'cantidad'
+            // Calcular el costo total actual del inventario antes de la compra
+            $costoTotalInventario = $inventario->existencias * $inventario->valor;
+
+            // Calcular el costo total de la compra actual
+            $costoTotalCompra = $detalle->cantidad * $detalle->valor;
+
+            // Calcular la nueva cantidad total en inventario después de la compra
+            $nuevaCantidad = $inventario->existencias + $detalle->cantidad;
+
+            // Calcular el nuevo costo promedio ponderado
+            $nuevoValor = ($costoTotalInventario + $costoTotalCompra) / $nuevaCantidad;
+
+            // Actualizar la cantidad y el valor en el inventario
+            $inventario->existencias = $nuevaCantidad;
+            $inventario->valor = $nuevoValor;
 
             // Guardar los cambios en el inventario
             $inventario->save();
